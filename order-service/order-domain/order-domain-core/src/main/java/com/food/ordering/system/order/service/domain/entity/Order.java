@@ -9,6 +9,7 @@ import com.food.ordering.system.order.service.domain.valueobject.TrackingId;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Order extends AggregateRoot<OrderId> {
     private final CustomerId customerId;
@@ -58,7 +59,8 @@ public class Order extends AggregateRoot<OrderId> {
 
     private void updateFailureMessages(List<String> failureMessages) {
         if (this.failureMessages != null && failureMessages != null) {
-            this.failureMessages.addAll(failureMessages.stream().filter(message -> !message.isEmpty()).toList());
+            this.failureMessages.addAll(failureMessages.stream().collect(Collectors.toList()));
+//           this.failureMessages.addAll(failureMessages.stream().filter(message -> !message.isEmpty()).toList());
         }
         if (this.failureMessages == null) {
             this.failureMessages = failureMessages;
@@ -78,7 +80,7 @@ public class Order extends AggregateRoot<OrderId> {
         }
     }
     private void validateTotalPrice() {
-        if (price == null || price.usGreaterThanZero()) {
+        if (price == null || !price.usGreaterThanZero()) {
             throw new OrderDomainException("Total price must be greater then zero!");
         }
     }
@@ -88,7 +90,7 @@ public class Order extends AggregateRoot<OrderId> {
            return orderItem.getSubTotal();
         }).reduce(Money.ZERO, Money::add);
 
-       if (price.equals(orderItemsTotal)) {
+       if (!price.equals(orderItemsTotal)) {
            throw new OrderDomainException("Total price: " + price.getAmount()
                    + "is not equal to Order items total: " + orderItemsTotal.getAmount() + "!");
        }
